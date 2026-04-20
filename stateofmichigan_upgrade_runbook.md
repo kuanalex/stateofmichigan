@@ -1,4 +1,4 @@
-# stateofmichigan CP4D 5.1.2 to 5.3.1 Upgrade
+# State of Michigan CP4D 5.1.2 to 5.3.1 Upgrade
 
 **From:**
 
