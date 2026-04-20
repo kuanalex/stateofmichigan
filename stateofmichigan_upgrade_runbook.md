@@ -412,223 +412,6 @@ oc get TemporaryPatch -n ${PROJECT_CPD_INST_OPERANDS} -o yaml > temporarypatch_b
 
 ---
 
-### Pre Upgrade Checklist
-
-Complete these critical steps before starting the OCP upgrade:
-
-#### 1. Backup etcd
-
-```bash
-# Create etcd backup - THIS IS YOUR ONLY RECOVERY PATH
-# Run on a control plane node
-sudo /usr/local/bin/cluster-backup.sh /home/core/backup
-
-# Verify backup was created
-ls -lh /home/core/backup/
-```
-
-#### 2. Check Cluster Upgradeable Status
-
-```bash
-# Verify no ClusterOperators are reporting Upgradeable=False
-oc get clusteroperators
-
-# Check for any operators with issues
-oc get clusteroperators -o json | jq -r '.items[] | select(.status.conditions[] | select(.type=="Upgradeable" and .status=="False")) | .metadata.name'
-```
-
-**Action Required**: If any operators show `Upgradeable=False`, investigate and resolve before proceeding.
-
-#### 3. Update Installed Operators
-
-```bash
-# Check for operator updates
-oc get packagemanifests -n openshift-marketplace
-
-# Update operators to versions compatible with target OCP
-# Review each operator's compatibility matrix
-```
-
-#### 4. Pause MachineHealthChecks
-
-```bash
-# List all MachineHealthChecks
-oc get machinehealthcheck -n openshift-machine-api
-
-# Pause each MachineHealthCheck to prevent node replacement during upgrade
-oc patch machinehealthcheck <name> -n openshift-machine-api --type merge -p '{"spec":{"paused":true}}'
-```
-
-#### 5. Verify Machine Config Pools
-
-```bash
-# Ensure all MCPs are not paused
-oc get mcp
-
-# All MCPs should show PAUSED=false
-```
-
----
-
-### OCP Upgrade Procedure
-
-
-#### Step 1: Upgrade OCP 4.16 → 4.16.4
-
-##### 1. Set Update Channel
-
-```bash
-# Verify current channel
-oc get clusterversion -o jsonpath='{.items[0].spec.channel}'
-
-# Set channel for 4.16.4
-oc adm upgrade channel stable-4.16.4
-```
-
-##### 2. Check Available Updates
-
-```bash
-# List available updates
-oc adm upgrade
-
-# Verify 4.16.4 is available
-```
-
-##### 3. Trigger the Upgrade
-
-```bash
-# Option A: Upgrade to latest in channel
-oc adm upgrade --to-latest=true
-
-# Option B: Upgrade to specific version (recommended)
-oc adm upgrade --to=4.16.4.X  # Replace X with specific patch version
-```
-
-##### 4. Monitor Upgrade Progress
-
-```bash
-# Watch upgrade status (this will take 60-90 minutes)
-watch -n 30 'oc adm upgrade status'
-
-# Alternative: Watch ClusterVersion
-oc get clusterversion -w
-
-# Check for any errors
-oc get clusterversion -o jsonpath='{.items[0].status.conditions[?(@.type=="Progressing")]}'
-```
-
-**Expected Duration**: 60-90 minutes
-
-##### 5. Verify Upgrade Completion
-
-```bash
-# Check cluster version
-oc get clusterversion
-
-# Verify all nodes are updated
-oc get nodes
-
-# Check all operators are stable
-oc get clusteroperators
-
-# Verify no degraded operators
-oc get co -o json | jq -r '.items[] | select(.status.conditions[] | select(.type=="Degraded" and .status=="True")) | .metadata.name'
-```
-
-**Success Criteria**:
-- ClusterVersion shows `VERSION=4.16.4.X` and `AVAILABLE=True`
-- All nodes show `VERSION=4.16.4.X` and `STATUS=Ready`
-- All ClusterOperators show `AVAILABLE=True`, `PROGRESSING=False`, `DEGRADED=False`
-
-
----
-
-
-### Post Upgrade Tasks
-
-#### 1. Unpause MachineHealthChecks
-
-```bash
-# Resume health checks after successful upgrade
-oc get machinehealthcheck -n openshift-machine-api
-
-# Unpause each MachineHealthCheck
-oc patch machinehealthcheck <name> -n openshift-machine-api --type merge -p '{"spec":{"paused":false}}'
-```
-
-#### 2. Final Verification
-
-```bash
-# Verify all nodes are healthy
-oc get nodes
-oc adm top nodes
-
-# Check all pods are running
-oc get pods --all-namespaces | grep -v Running | grep -v Completed
-
-# Verify cluster operators
-oc get co
-
-# Check for any alerts
-oc get prometheusrule -n openshift-monitoring
-```
-
-#### 3. Test Cluster Functionality
-
-```bash
-# Test basic cluster operations
-oc new-project test-upgrade
-oc run test-pod --image=registry.access.redhat.com/ubi8/ubi:latest --command -- sleep 3600
-oc get pods -n test-upgrade
-oc delete project test-upgrade
-```
-
----
-
-### Troubleshooting
-
-#### Upgrade Stuck or Failed
-
-```bash
-# Check upgrade status
-oc adm upgrade status
-
-# Review ClusterVersion conditions
-oc get clusterversion -o yaml
-
-# Check operator logs
-oc logs -n openshift-cluster-version deployment/cluster-version-operator
-
-# Force reconciliation (use with caution)
-oc patch clusterversion version --type merge -p '{"spec":{"overrides":[]}}'
-```
-
-#### Conditional Update Warning
-
-If `oc adm upgrade` shows a "Conditional Update" warning:
-
-```bash
-# Get detailed information
-oc adm upgrade --include-not-recommended
-
-# Review Red Hat Insights for your cluster
-# Visit: https://console.redhat.com/openshift/insights/
-```
-
-**Action**: Review the specific risks for your hardware/configuration before proceeding.
-
----
-
-### References
-
-- [OCP 4.16.4 Update Documentation](https://docs.redhat.com/en/documentation/openshift_container_platform/4.16.4/html/updating_clusters/)
-- [Preparing to Update](https://docs.redhat.com/en/documentation/openshift_container_platform/4.16.4/html/updating_clusters/preparing-to-update-a-cluster)
-- [Performing Cluster Update](https://docs.redhat.com/en/documentation/openshift_container_platform/4.16.4/html/updating_clusters/performing-a-cluster-update)
-
----
----
-
-
 ## Pre Upgrade Health Check
 
 ### Run Comprehensive Health Check
@@ -849,83 +632,11 @@ oc get ZenService lite-cr -n ${PROJECT_CPD_INST_OPERANDS} -o jsonpath='{.status.
 
 ### 4.4 Upgrade Services
 
-**Option 1: Batch Upgrade (Recommended for Most Cases)**
-
-Upgrade all services together for faster completion:
-
-```bash
-# Upgrade all services in batch (5.3.x method)
-cpd-cli manage install-components \
-  --license_acceptance=true \
-  --components=${COMPONENTS} \
-  --release=${VERSION} \
-  --operator_ns=${PROJECT_CPD_INST_OPERATORS} \
-  --instance_ns=${PROJECT_CPD_INST_OPERANDS} \
-  --image_pull_prefix=${IMAGE_PULL_PREFIX} \
-  --image_pull_secret=${IMAGE_PULL_SECRET} \
-  --run_storage_tests=false \
-  --upgrade=true
-
-# Monitor overall upgrade progress
-watch -n 30 'oc get pods -n ${PROJECT_CPD_INST_OPERANDS} | grep -v Running | grep -v Completed'
-
-# Check upgrade status
-cpd-cli manage get-cr-status --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS}
-```
-
-**Option 2: Individual Service Upgrade (For More Control)**
+**Individual Service Upgrade (For More Control)**
 
 Upgrade services one at a time for better monitoring and troubleshooting:
 
-#### 4.4.1 Upgrade Ibm Licensing
-
-```bash
-# Upgrade ibm_licensing (5.3.x method)
-cpd-cli manage install-components \
-  --license_acceptance=true \
-  --components=ibm_licensing \
-  --release=${VERSION} \
-  --operator_ns=${PROJECT_CPD_INST_OPERATORS} \
-  --instance_ns=${PROJECT_CPD_INST_OPERANDS} \
-  --image_pull_prefix=${IMAGE_PULL_PREFIX} \
-  --image_pull_secret=${IMAGE_PULL_SECRET} \
-  --run_storage_tests=false \
-  --upgrade=true
-
-# Monitor ibm_licensing upgrade
-cpd-cli manage get-cr-status \
-  --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS} \
-  --components=ibm_licensing
-
-# Check ibm_licensing pods
-oc get pods -n ${PROJECT_CPD_INST_OPERANDS} | grep ibm_licensing
-```
-
-#### 4.4.3 Upgrade Analytics Engine
-
-```bash
-# Upgrade analyticsengine (5.3.x method)
-cpd-cli manage install-components \
-  --license_acceptance=true \
-  --components=analyticsengine \
-  --release=${VERSION} \
-  --operator_ns=${PROJECT_CPD_INST_OPERATORS} \
-  --instance_ns=${PROJECT_CPD_INST_OPERANDS} \
-  --image_pull_prefix=${IMAGE_PULL_PREFIX} \
-  --image_pull_secret=${IMAGE_PULL_SECRET} \
-  --run_storage_tests=false \
-  --upgrade=true
-
-# Monitor analyticsengine upgrade
-cpd-cli manage get-cr-status \
-  --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS} \
-  --components=analyticsengine
-
-# Check analyticsengine pods
-oc get pods -n ${PROJECT_CPD_INST_OPERANDS} | grep analyticsengine
-```
-
-#### 4.4.4 Upgrade Watson Pipelines
+#### 4.4.1 Upgrade Watson Pipelines
 
 ```bash
 # Upgrade ws_pipelines (5.3.x method)
@@ -949,7 +660,7 @@ cpd-cli manage get-cr-status \
 oc get pods -n ${PROJECT_CPD_INST_OPERANDS} | grep ws_pipelines
 ```
 
-#### 4.4.5 Upgrade Manta Flow
+#### 4.4.2 Upgrade Manta Flow
 
 ```bash
 # Upgrade mantaflow (5.3.x method)
@@ -973,7 +684,7 @@ cpd-cli manage get-cr-status \
 oc get pods -n ${PROJECT_CPD_INST_OPERANDS} | grep mantaflow
 ```
 
-#### 4.4.6 Upgrade Watson Knowledge Catalog
+#### 4.4.3 Upgrade Watson Knowledge Catalog
 
 ```bash
 # Upgrade wkc (5.3.x method)
@@ -997,7 +708,7 @@ cpd-cli manage get-cr-status \
 oc get pods -n ${PROJECT_CPD_INST_OPERANDS} | grep wkc
 ```
 
-#### 4.4.7 Upgrade DataStage Enterprise Plus
+#### 4.4.4 Upgrade DataStage Enterprise Plus
 
 ```bash
 # Upgrade datastage_ent_plus (5.3.x method)
@@ -1021,10 +732,7 @@ cpd-cli manage get-cr-status \
 oc get pods -n ${PROJECT_CPD_INST_OPERANDS} | grep datastage_ent_plus
 ```
 
-
 ---
-
-
 
 ## Service Instance Upgrades
 
@@ -1057,12 +765,6 @@ cpd-cli service-instance upgrade \
 ```
 
 **Documentation**: [Upgrading Analytics Engine](https://www.ibm.com/docs/en/software-hub/5.3.x?topic=u-upgrading-from-version-53-21#cli-upgrade__svc-inst__title__1)
-
-
----
-
-
-
 
 ---
 
@@ -1116,20 +818,8 @@ cpd-cli manage apply-rsi-patches \
   --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS}
 ```
 
-**Verification**:
-```bash
-# Verify patches are active
-cpd-cli manage get-rsi-patch-info \
-  --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS} \
-  --all
-
-# Check that affected pods are running
-oc get pods -n ${PROJECT_CPD_INST_OPERANDS}
-```
-
 **Reference**: [IBM Documentation - Upgrading Software Hub](https://www.ibm.com/docs/en/software-hub/5.3.x?topic=upgrading)
 
----
 ---
 
 ## Post Upgrade Validation
@@ -1502,8 +1192,4 @@ oc logs ${WKC_POD} -n ${PROJECT_CPD_INST_OPERANDS} | grep -i error
 
 ---
 
----
-
 **End of Runbook**
-
-*Generated by CP4D Upgrade Automation Tool v1.2.0*
