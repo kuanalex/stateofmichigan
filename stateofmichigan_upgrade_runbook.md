@@ -636,13 +636,13 @@ oc get ZenService lite-cr -n ${PROJECT_CPD_INST_OPERANDS} -o jsonpath='{.status.
 
 Upgrade services one at a time for better monitoring and troubleshooting:
 
-#### 4.4.1 Upgrade Watson Pipelines
+#### 4.4.1 Upgrade Watson Knowledge Catalog
 
 ```bash
-# Upgrade ws_pipelines (5.3.x method)
+# Upgrade wkc (5.3.x method)
 cpd-cli manage install-components \
   --license_acceptance=true \
-  --components=ws_pipelines \
+  --components=wkc \
   --release=${VERSION} \
   --operator_ns=${PROJECT_CPD_INST_OPERATORS} \
   --instance_ns=${PROJECT_CPD_INST_OPERANDS} \
@@ -651,13 +651,10 @@ cpd-cli manage install-components \
   --run_storage_tests=false \
   --upgrade=true
 
-# Monitor ws_pipelines upgrade
+# Monitor wkc upgrade
 cpd-cli manage get-cr-status \
   --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS} \
-  --components=ws_pipelines
-
-# Check ws_pipelines pods
-oc get pods -n ${PROJECT_CPD_INST_OPERANDS} | grep ws_pipelines
+  --components=wkc
 ```
 
 #### 4.4.2 Upgrade Manta Flow
@@ -679,18 +676,15 @@ cpd-cli manage install-components \
 cpd-cli manage get-cr-status \
   --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS} \
   --components=mantaflow
-
-# Check mantaflow pods
-oc get pods -n ${PROJECT_CPD_INST_OPERANDS} | grep mantaflow
 ```
 
-#### 4.4.3 Upgrade Watson Knowledge Catalog
+#### 4.4.3 Upgrade Watson Pipelines
 
 ```bash
-# Upgrade wkc (5.3.x method)
+# Upgrade ws_pipelines (5.3.x method)
 cpd-cli manage install-components \
   --license_acceptance=true \
-  --components=wkc \
+  --components=ws_pipelines \
   --release=${VERSION} \
   --operator_ns=${PROJECT_CPD_INST_OPERATORS} \
   --instance_ns=${PROJECT_CPD_INST_OPERANDS} \
@@ -699,13 +693,10 @@ cpd-cli manage install-components \
   --run_storage_tests=false \
   --upgrade=true
 
-# Monitor wkc upgrade
+# Monitor ws_pipelines upgrade
 cpd-cli manage get-cr-status \
   --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS} \
-  --components=wkc
-
-# Check wkc pods
-oc get pods -n ${PROJECT_CPD_INST_OPERANDS} | grep wkc
+  --components=ws_pipelines
 ```
 
 #### 4.4.4 Upgrade DataStage Enterprise Plus
@@ -727,9 +718,6 @@ cpd-cli manage install-components \
 cpd-cli manage get-cr-status \
   --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS} \
   --components=datastage_ent_plus
-
-# Check datastage_ent_plus pods
-oc get pods -n ${PROJECT_CPD_INST_OPERANDS} | grep datastage_ent_plus
 ```
 
 ---
