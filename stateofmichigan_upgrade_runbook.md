@@ -279,6 +279,8 @@ cd -
 
 #### 4.1.3 Creating image pull secrets for shared cluster components
 
+**Reference**: [Creating image pull secrets for shared cluster components](https://www.ibm.com/docs/en/software-hub/5.3.x?topic=pyc-creating-image-pull-secrets-shared-cluster-components)
+
 Log in to Red Hat® OpenShift® Container Platform as a user with sufficient permissions to complete the task
 ```bash
 ${OC_LOGIN}
@@ -298,6 +300,8 @@ EOF
 ```
 
 #### 4.1.4 Creating image pull secrets for the instance  
+
+**Reference**: [Creating image pull secrets for an instance of IBM Software Hub](https://www.ibm.com/docs/en/software-hub/5.3.x?topic=uish-creating-image-pull-secrets-instance)
 
 Log in to Red Hat® OpenShift® Container Platform as a user with sufficient permissions to complete the task
 ```bash
