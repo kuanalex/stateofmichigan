@@ -5,7 +5,7 @@
 ```
 CPD: 5.1.2
 OCP: 4.16
-Storage: None
+Storage: Portworx
 Internet: airgap
 Private container registry: yes
 Components: ibm_licensing,cpd_platform,analyticsengine,ws_pipelines,mantaflow,wkc,datastage_ent_plus
@@ -16,7 +16,7 @@ Components: ibm_licensing,cpd_platform,analyticsengine,ws_pipelines,mantaflow,wk
 ```
 CPD: 5.3.1
 OCP: 4.16
-Storage: None
+Storage: Portworx
 Internet: airgap
 Private container registry: yes
 Components: ibm_licensing,cpd_platform,analyticsengine,ws_pipelines,mantaflow,wkc,datastage_ent_plus
