@@ -277,7 +277,61 @@ mv cluster_scoped_resources.yaml ${VERSION}-${PROJECT_CPD_INST_OPERATORS}-cluste
 cd -
 ```
 
-#### 4.1.3 Apply Entitlements
+#### 4.1.3 Creating image pull secrets for shared cluster components
+
+Log in to Red Hat® OpenShift® Container Platform as a user with sufficient permissions to complete the task
+```bash
+${OC_LOGIN}
+```
+
+Create a file named dockerconfig.json based on where your cluster pulls images from
+```bash
+cat <<EOF > dockerconfig.json 
+{
+  "auths": {
+    "${PRIVATE_REGISTRY_LOCATION}": {
+      "auth": "${IMAGE_PULL_CREDENTIALS}"
+    }
+  }
+}
+EOF
+```
+
+#### 4.1.4 Creating image pull secrets for the instance  
+
+Log in to Red Hat® OpenShift® Container Platform as a user with sufficient permissions to complete the task
+```bash
+${OC_LOGIN}
+```
+
+Create a file named dockerconfig.json based on where your cluster pulls images from
+```bash
+cat <<EOF > dockerconfig.json 
+{
+  "auths": {
+    "${PRIVATE_REGISTRY_LOCATION}": {
+      "auth": "${IMAGE_PULL_CREDENTIALS}"
+    }
+  }
+}
+EOF
+```
+
+Create the image pull secret in the operators project for the instance
+```bash
+oc create secret docker-registry ${IMAGE_PULL_SECRET} \
+--from-file ".dockerconfigjson=dockerconfig.json" \
+--namespace=${PROJECT_CPD_INST_OPERATORS}
+```
+
+Create the image pull secret in the operands project for the instance
+```bash
+oc create secret docker-registry ${IMAGE_PULL_SECRET} \
+--from-file ".dockerconfigjson=dockerconfig.json" \
+--namespace=${PROJECT_CPD_INST_OPERATORS}
+```
+
+#### 4.1.5 Apply Entitlements
 
 **Reference**: [Applying your entitlements](https://www.ibm.com/docs/en/software-hub/5.3.x?topic=aye-applying-your-entitlements-without-node-pinning-2)
 
