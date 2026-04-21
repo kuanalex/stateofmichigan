@@ -421,10 +421,34 @@ oc get ZenService lite-cr -n ${PROJECT_CPD_INST_OPERANDS} -o jsonpath='{.status.
 
 Upgrade services one at a time for better monitoring and troubleshooting:
 
-#### 4.4.1 Upgrade Watson Knowledge Catalog
+#### 4.4.1 Upgrade Db2aaservice and Watson Knowledge Catalog
 
+When WKC is upgraded from 5.1.x to a later release, WKC data is migrated from Db2 and CouchDB databases to the EDB Native PostgreSQL database
+
+For this upgrade path, the underlying db2aaservice component will need to be upgraded prior to initiating WKC upgrade
 ```bash
-# Upgrade wkc (5.3.x method)
+cpd-cli manage install-components \
+--license_acceptance=true \
+--components=db2aaservice \
+--release=${VERSION} \
+--operator_ns=${PROJECT_CPD_INST_OPERATORS} \
+--instance_ns=${PROJECT_CPD_INST_OPERANDS} \
+--block_storage_class=${STG_CLASS_BLOCK} \
+--file_storage_class=${STG_CLASS_FILE} \
+--image_pull_prefix=${IMAGE_PULL_PREFIX} \
+--image_pull_secret=${IMAGE_PULL_SECRET} \
+--upgrade=true
+```
+
+Monitor db2aaservice upgrade
+```bash
+cpd-cli manage get-cr-status \
+  --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS} \
+  --components=db2aaservice
+```
+
+Upgrade wkc
+```bash
 cpd-cli manage install-components \
   --license_acceptance=true \
   --components=wkc \
@@ -435,8 +459,10 @@ cpd-cli manage install-components \
   --image_pull_secret=${IMAGE_PULL_SECRET} \
   --run_storage_tests=false \
   --upgrade=true
+```
 
-# Monitor wkc upgrade
+Monitor wkc upgrade
+```bash
 cpd-cli manage get-cr-status \
   --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS} \
   --components=wkc
@@ -444,8 +470,8 @@ cpd-cli manage get-cr-status \
 
 #### 4.4.2 Upgrade Manta Flow
 
+Upgrade mantaflow
 ```bash
-# Upgrade mantaflow (5.3.x method)
 cpd-cli manage install-components \
   --license_acceptance=true \
   --components=mantaflow \
@@ -456,8 +482,10 @@ cpd-cli manage install-components \
   --image_pull_secret=${IMAGE_PULL_SECRET} \
   --run_storage_tests=false \
   --upgrade=true
+```
 
-# Monitor mantaflow upgrade
+Monitor mantaflow upgrade
+```bash
 cpd-cli manage get-cr-status \
   --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS} \
   --components=mantaflow
@@ -465,8 +493,8 @@ cpd-cli manage get-cr-status \
 
 #### 4.4.3 Upgrade Watson Pipelines
 
+Upgrade ws_pipelines
 ```bash
-# Upgrade ws_pipelines (5.3.x method)
 cpd-cli manage install-components \
   --license_acceptance=true \
   --components=ws_pipelines \
@@ -477,8 +505,10 @@ cpd-cli manage install-components \
   --image_pull_secret=${IMAGE_PULL_SECRET} \
   --run_storage_tests=false \
   --upgrade=true
+```
 
-# Monitor ws_pipelines upgrade
+Monitor ws_pipelines upgrade
+```bash
 cpd-cli manage get-cr-status \
   --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS} \
   --components=ws_pipelines
@@ -498,8 +528,10 @@ cpd-cli manage install-components \
   --image_pull_secret=${IMAGE_PULL_SECRET} \
   --run_storage_tests=false \
   --upgrade=true
+```
 
-# Monitor datastage_ent_plus upgrade
+Monitor datastage_ent_plus upgrade
+```bash
 cpd-cli manage get-cr-status \
   --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS} \
   --components=datastage_ent_plus
