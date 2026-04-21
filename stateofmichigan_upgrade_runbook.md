@@ -426,6 +426,18 @@ Upgrade services one at a time for better monitoring and troubleshooting:
 When WKC is upgraded from 5.1.x to a later release, WKC data is migrated from Db2 and CouchDB databases to the EDB Native PostgreSQL database
 
 For this upgrade path, the underlying db2aaservice component will need to be upgraded prior to initiating WKC upgrade
+
+Mirror db2aaservice images as required
+```bash
+cpd-cli manage mirror-images \
+--components=db2aaservice \
+--release=${VERSION} \
+--target_registry=${PRIVATE_REGISTRY_LOCATION} \
+--arch=${IMAGE_ARCH} \
+--case_download=true
+```
+
+Upgrade db2aaservice
 ```bash
 cpd-cli manage install-components \
 --license_acceptance=true \
