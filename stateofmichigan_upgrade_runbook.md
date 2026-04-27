@@ -8,7 +8,7 @@ OCP: 4.16
 Storage: Portworx
 Internet: airgap
 Private container registry: yes
-Components: ibm_licensing,cpd_platform,analyticsengine,ws_pipelines,mantaflow,wkc,datastage_ent_plus
+Components: ibm_licensing,cpfs,ccs,cpd_platform,analyticsengine,ws_pipelines,mantaflow,wkc,datastage_ent_plus
 ```
 
 **To:**
@@ -19,7 +19,7 @@ OCP: 4.16
 Storage: Portworx
 Internet: airgap
 Private container registry: yes
-Components: ibm_licensing,cpd_platform,analyticsengine,ws_pipelines,mantaflow,wkc,datastage_ent_plus
+Components: ibm_licensing,cpfs,ccs,cpd_platform,analyticsengine,ws_pipelines,mantaflow,wkc,datastage_ent_plus
 ```
 
 ---
